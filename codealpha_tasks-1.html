@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CodeAlpha Python Tasks</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222533;
+    --border: #2e3147;
+    --accent: #7c6af7;
+    --accent2: #4fd1c5;
+    --accent3: #f6ad55;
+    --accent4: #fc8181;
+    --text: #e2e8f0;
+    --muted: #718096;
+    --green: #68d391;
+    --red: #fc8181;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header .logo {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  header .badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Tab Nav ── */
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    padding: 16px 24px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 16px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tab-btn .num {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    font-size: 10px;
+    line-height: 18px;
+    text-align: center;
+    margin-right: 6px;
+    background: var(--border);
+  }
+  .tab-btn.active .num { background: var(--accent); color: #fff; }
+
+  /* ── Task pane ── */
+  .task-pane { display: none; padding: 28px 24px; max-width: 760px; margin: 0 auto; }
+  .task-pane.active { display: block; }
+
+  .task-title {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .task-desc { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+  /* ── Terminal window ── */
+  .terminal {
+    background: #0a0c12;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .terminal-bar {
+    background: var(--surface2);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  .terminal-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 8px;
+  }
+  .terminal-output {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 16px;
+    min-height: 140px;
+    max-height: 340px;
+    overflow-y: auto;
+    color: #a8b2d8;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .terminal-output .ok   { color: var(--green); }
+  .terminal-output .err  { color: var(--red); }
+  .terminal-output .info { color: var(--accent2); }
+  .terminal-output .warn { color: var(--accent3); }
+  .terminal-output .sys  { color: var(--accent); }
+  .terminal-output .user-line { color: #e2e8f0; }
+
+  .terminal-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    background: #0a0c12;
+  }
+  .prompt-sym {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .terminal-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    caret-color: var(--accent);
+  }
+  .run-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .run-btn:hover { opacity: .85; }
+
+  /* ── Controls row ── */
+  .controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .ctrl-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .ctrl-btn:hover { background: var(--border); border-color: var(--accent); }
+  .ctrl-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ctrl-btn.primary:hover { opacity: .85; }
+
+  /* ── Stock table ── */
+  .stock-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .stock-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: border-color .15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stock-card:hover { border-color: var(--accent2); }
+  .stock-card.selected { border-color: var(--accent2); background: #1e2a33; }
+  .stock-sym { font-family: var(--mono); font-weight: 700; font-size: 14px; }
+  .stock-price { font-family: var(--mono); font-size: 13px; color: var(--accent2); }
+
+  .portfolio-row {
+    display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+  }
+  .portfolio-row select, .portfolio-row input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+  }
+  .portfolio-row select { flex: 1; }
+  .portfolio-row input { width: 80px; }
+
+  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 13px; margin-top: 16px; }
+  th { background: var(--surface2); color: var(--muted); font-weight: 600; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .total-row td { color: var(--accent3); font-weight: 700; border-top: 2px solid var(--border); }
+
+  /* ── Chatbot ── */
+  .chat-messages {
+    background: #0a0c12;
+    border: 1px solid var(--border);
+    border-radius: 10px 10px 0 0;
+    padding: 16px;
+    min-height: 300px;
+    max-height: 380px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg { display: flex; gap: 10px; align-items: flex-start; }
+  .msg.user { flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+  .msg.bot .msg-avatar { background: var(--accent); border-color: var(--accent); }
+  .msg-bubble {
+    max-width: 75%;
+    padding: 9px 13px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+  .msg.user .msg-bubble { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chat-input-row {
+    display: flex;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--surface2);
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 12px 16px;
+  }
+  .chat-send {
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: opacity .15s;
+  }
+  .chat-send:hover { opacity: .85; }
+
+  /* ── Hangman ── */
+  .hangman-wrap { display: flex; gap: 24px; flex-wrap: wrap; }
+  .gallows-box {
+    background: #0a0c12;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.4;
+    color: #a8b2d8;
+    white-space: pre;
+    min-width: 180px;
+  }
+  .word-display {
+    font-family: var(--mono);
+    font-size: 28px;
+    letter-spacing: 8px;
+    color: var(--text);
+    margin: 20px 0 12px;
+  }
+  .guessed-letters {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .alpha-grid {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+  }
+  .alpha-btn {
+    width: 36px; height: 36px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .1s, border-color .1s;
+  }
+  .alpha-btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .alpha-btn:disabled { opacity: 0.3; cursor: default; }
+  .alpha-btn.wrong { background: #2d1e1e; border-color: var(--red); color: var(--red); }
+  .alpha-btn.right { background: #1a2d1e; border-color: var(--green); color: var(--green); }
+  .status-msg { font-family: var(--mono); font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+
+  /* ── Email extractor ── */
+  .textarea-box {
+    width: 100%;
+    background: #0a0c12;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 12px;
+    resize: vertical;
+    outline: none;
+    min-height: 120px;
+  }
+  .email-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #1a2233;
+    border: 1px solid var(--accent);
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    margin: 4px;
+  }
+
+  /* ── Divider ── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 20px 0 10px;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">CodeAlpha</span>
+  <span class="badge">Python Tasks</span>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(0)"><span class="num">1</span>Hangman</button>
+  <button class="tab-btn" onclick="switchTab(1)"><span class="num">2</span>Stock Tracker</button>
+  <button class="tab-btn" onclick="switchTab(2)"><span class="num">3</span>Automation</button>
+  <button class="tab-btn" onclick="switchTab(3)"><span class="num">4</span>Chatbot</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     TASK 1: HANGMAN
+═══════════════════════════════════════════════════════ -->
+<div class="task-pane active" id="pane-0">
+  <div class="task-title">🎯 Hangman Game</div>
+  <div class="task-desc">Guess the hidden word one letter at a time. You have 6 attempts.</div>
+
+  <div id="hm-status" class="status-msg"></div>
+
+  <div class="hangman-wrap">
+    <div class="gallows-box" id="gallows"></div>
+    <div>
+      <div class="word-display" id="hm-word"></div>
+      <div class="guessed-letters" id="hm-guessed">Guessed: —</div>
+      <div class="alpha-grid" id="alpha-grid"></div>
+      <button class="ctrl-btn primary" onclick="hangmanNewGame()">New Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TASK 2: STOCK TRACKER
+═══════════════════════════════════════════════════════ -->
+<div class="task-pane" id="pane-1">
+  <div class="task-title">📈 Stock Portfolio Tracker</div>
+  <div class="task-desc">Add stocks and quantities to calculate your total investment value.</div>
+
+  <div class="section-label">Add to Portfolio</div>
+  <div class="portfolio-row">
+    <select id="stock-sel">
+      <option value="">Select stock…</option>
+      <option value="AAPL">AAPL — Apple ($180.00)</option>
+      <option value="TSLA">TSLA — Tesla ($250.00)</option>
+      <option value="GOOGL">GOOGL — Google ($140.00)</option>
+      <option value="AMZN">AMZN — Amazon ($185.00)</option>
+      <option value="MSFT">MSFT — Microsoft ($415.00)</option>
+      <option value="NFLX">NFLX — Netflix ($490.00)</option>
+      <option value="META">META — Meta ($505.00)</option>
+      <option value="NVDA">NVDA — Nvidia ($875.00)</option>
+    </select>
+    <input type="number" id="stock-qty" placeholder="Qty" min="1" value="1"/>
+    <button class="ctrl-btn primary" onclick="addStock()">Add</button>
+  </div>
+
+  <div id="stock-error" style="color:var(--red);font-size:12px;font-family:var(--mono);margin-bottom:8px;"></div>
+
+  <div id="portfolio-table-wrap"></div>
+
+  <div style="display:flex;gap:8px;margin-top:12px;">
+    <button class="ctrl-btn" onclick="clearPortfolio()">Clear All</button>
+    <button class="ctrl-btn primary" onclick="exportPortfolioTxt()">⬇ Export .txt</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TASK 3: AUTOMATION
+═══════════════════════════════════════════════════════ -->
+<div class="task-pane" id="pane-2">
+  <div class="task-title">🤖 Task Automation Scripts</div>
+  <div class="task-desc">Three automation tools running live in your browser.</div>
+
+  <!-- Subtask A: File Mover (simulated) -->
+  <div class="section-label">Subtask A — File Mover (.jpg filter)</div>
+  <div style="margin-bottom:10px;">
+    <textarea class="textarea-box" id="filelist-input" rows="4" placeholder="Enter filenames (one per line), e.g:
+photo1.jpg
+document.pdf
+vacation.jpg
+report.txt"></textarea>
+  </div>
+  <button class="ctrl-btn primary" onclick="runFileMover()">Move .jpg Files</button>
+  <div class="terminal" style="margin-top:12px;">
+    <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="terminal-label">file_mover.py</span></div>
+    <div class="terminal-output" id="file-output">Ready. Enter filenames above and click Run.</div>
+  </div>
+
+  <!-- Subtask B: Email Extractor -->
+  <div class="section-label" style="margin-top:24px;">Subtask B — Email Extractor</div>
+  <textarea class="textarea-box" id="email-input" rows="5" placeholder="Paste any text with emails here…
+
+E.g: Contact us at hello@codealpha.tech or support@company.com for help."></textarea>
+  <button class="ctrl-btn primary" style="margin-top:8px;" onclick="runEmailExtractor()">Extract Emails</button>
+  <div id="email-results" style="margin-top:12px;"></div>
+
+  <!-- Subtask C: Page Title Scraper -->
+  <div class="section-label" style="margin-top:24px;">Subtask C — Webpage Title Scraper</div>
+  <div style="display:flex;gap:8px;margin-bottom:8px;">
+    <input id="url-input" type="text" placeholder="Enter a URL, e.g. https://example.com"
+      style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-family:var(--mono);font-size:13px;outline:none;"/>
+    <button class="ctrl-btn primary" onclick="runTitleScraper()">Fetch Title</button>
+  </div>
+  <div class="terminal">
+    <div class="terminal-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="terminal-label">scraper.py</span></div>
+    <div class="terminal-output" id="scraper-output">Ready. Enter a URL and click Fetch Title.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TASK 4: CHATBOT
+═══════════════════════════════════════════════════════ -->
+<div class="task-pane" id="pane-3">
+  <div class="task-title">💬 CodeBot — Rule-Based Chatbot</div>
+  <div class="task-desc">A rule-based chatbot using if-elif pattern matching. Try: "hello", "tell me a joke", "what is python"</div>
+
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-input-row">
+    <input type="text" class="chat-input" id="chat-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendChat()"/>
+    <button class="chat-send" onclick="sendChat()">Send</button>
+  </div>
+  <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+    <button class="ctrl-btn" onclick="quickMsg('hello')">hello</button>
+    <button class="ctrl-btn" onclick="quickMsg('how are you?')">how are you?</button>
+    <button class="ctrl-btn" onclick="quickMsg('tell me a joke')">tell me a joke</button>
+    <button class="ctrl-btn" onclick="quickMsg('what is python')">what is python</button>
+    <button class="ctrl-btn" onclick="quickMsg('my name is Adi')">my name is Adi</button>
+    <button class="ctrl-btn" onclick="quickMsg('bye')">bye</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// TAB SWITCHING
+// ─────────────────────────────────────────────
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.querySelectorAll('.task-pane').forEach((p,i)=>p.classList.toggle('active',i===idx));
+}
+
+// ─────────────────────────────────────────────
+// TASK 1: HANGMAN
+// ─────────────────────────────────────────────
+const HM_WORDS = ["python","hangman","laptop","keyboard","monitor","developer","algorithm","function","variable","database"];
+const STAGES = [
+`  +---+
+  |   |
+      |
+      |
+      |
+      |
+=========`,
+`  +---+
+  |   |
+  O   |
+      |
+      |
+      |
+=========`,
+`  +---+
+  |   |
+  O   |
+  |   |
+      |
+      |
+=========`,
+`  +---+
+  |   |
+  O   |
+ /|   |
+      |
+      |
+=========`,
+`  +---+
+  |   |
+  O   |
+ /|\\  |
+      |
+      |
+=========`,
+`  +---+
+  |   |
+  O   |
+ /|\\  |
+ /    |
+      |
+=========`,
+`  +---+
+  |   |
+  O   |
+ /|\\  |
+ / \\  |
+      |
+=========`];
+
+let hmState = {};
+
+function hangmanNewGame() {
+  const word = HM_WORDS[Math.floor(Math.random()*HM_WORDS.length)];
+  hmState = { word, guessed: new Set(), wrong: 0, over: false };
+  renderHangman();
+  document.getElementById('hm-status').textContent = '';
+}
+
+function renderHangman() {
+  const { word, guessed, wrong } = hmState;
+  document.getElementById('gallows').textContent = STAGES[wrong];
+  const display = word.split('').map(l => guessed.has(l) ? l : '_').join(' ');
+  document.getElementById('hm-word').textContent = display;
+  const g = [...guessed];
+  document.getElementById('hm-guessed').textContent = 'Guessed: ' + (g.length ? g.join(', ') : '—');
+
+  // rebuild alpha grid
+  const grid = document.getElementById('alpha-grid');
+  grid.innerHTML = '';
+  for (let c = 97; c <= 122; c++) {
+    const letter = String.fromCharCode(c);
+    const btn = document.createElement('button');
+    btn.className = 'alpha-btn';
+    btn.textContent = letter;
+    if (guessed.has(letter)) {
+      btn.disabled = true;
+      btn.classList.add(word.includes(letter) ? 'right' : 'wrong');
+    }
+    btn.onclick = () => hmGuess(letter);
+    grid.appendChild(btn);
+  }
+}
+
+function hmGuess(letter) {
+  if (hmState.over || hmState.guessed.has(letter)) return;
+  hmState.guessed.add(letter);
+  if (!hmState.word.includes(letter)) hmState.wrong++;
+
+  const won = hmState.word.split('').every(l => hmState.guessed.has(l));
+  const lost = hmState.wrong >= 6;
+  const status = document.getElementById('hm-status');
+
+  if (won) {
+    hmState.over = true;
+    status.style.color = 'var(--green)';
+    status.textContent = '🎉 You won! The word was "' + hmState.word + '"';
+    document.getElementById('hm-word').textContent = hmState.word.split('').join(' ');
+  } else if (lost) {
+    hmState.over = true;
+    status.style.color = 'var(--red)';
+    status.textContent = '💀 Game over! The word was "' + hmState.word + '"';
+    document.getElementById('hm-word').textContent = hmState.word.split('').join(' ');
+  }
+  renderHangman();
+}
+
+// ─────────────────────────────────────────────
+// TASK 2: STOCK TRACKER
+// ─────────────────────────────────────────────
+const PRICES = { AAPL:180, TSLA:250, GOOGL:140, AMZN:185, MSFT:415, NFLX:490, META:505, NVDA:875 };
+let portfolio = [];
+
+function addStock() {
+  const sym = document.getElementById('stock-sel').value;
+  const qty = parseInt(document.getElementById('stock-qty').value);
+  const err = document.getElementById('stock-error');
+  err.textContent = '';
+  if (!sym) { err.textContent = '⚠ Select a stock first.'; return; }
+  if (!qty || qty < 1) { err.textContent = '⚠ Enter a valid quantity.'; return; }
+  const existing = portfolio.find(p => p.sym === sym);
+  if (existing) existing.qty += qty;
+  else portfolio.push({ sym, qty });
+  renderPortfolio();
+}
+
+function clearPortfolio() { portfolio = []; renderPortfolio(); }
+
+function removeStock(sym) {
+  portfolio = portfolio.filter(p => p.sym !== sym);
+  renderPortfolio();
+}
+
+function renderPortfolio() {
+  const wrap = document.getElementById('portfolio-table-wrap');
+  if (!portfolio.length) { wrap.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:13px;padding:16px 0;">No stocks added yet.</div>'; return; }
+  let total = 0;
+  let rows = portfolio.map(p => {
+    const val = PRICES[p.sym] * p.qty;
+    total += val;
+    return `<tr>
+      <td>${p.sym}</td>
+      <td>${p.qty}</td>
+      <td>$${PRICES[p.sym].toFixed(2)}</td>
+      <td>$${val.toFixed(2)}</td>
+      <td><button onclick="removeStock('${p.sym}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;">✕</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Symbol</th><th>Qty</th><th>Price</th><th>Value</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr class="total-row"><td colspan="3">Total Investment</td><td>$${total.toFixed(2)}</td><td></td></tr></tfoot>
+  </table>`;
+}
+
+function exportPortfolioTxt() {
+  if (!portfolio.length) return;
+  let total = 0;
+  let lines = ['Stock Portfolio\n' + '='.repeat(40)];
+  portfolio.forEach(p => {
+    const val = PRICES[p.sym] * p.qty;
+    total += val;
+    lines.push(`${p.sym}: ${p.qty} shares @ $${PRICES[p.sym].toFixed(2)} = $${val.toFixed(2)}`);
+  });
+  lines.push('-'.repeat(40));
+  lines.push(`Total Investment: $${total.toFixed(2)}`);
+  const blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'portfolio.txt';
+  a.click();
+}
+
+// ─────────────────────────────────────────────
+// TASK 3A: FILE MOVER
+// ─────────────────────────────────────────────
+function runFileMover() {
+  const raw = document.getElementById('filelist-input').value.trim();
+  const out = document.getElementById('file-output');
+  if (!raw) { out.innerHTML = '<span class="warn">⚠ Enter filenames above first.</span>'; return; }
+  const files = raw.split('\n').map(f=>f.trim()).filter(Boolean);
+  const jpgs = files.filter(f => f.toLowerCase().endsWith('.jpg'));
+  const others = files.filter(f => !f.toLowerCase().endsWith('.jpg'));
+  let html = '<span class="sys">$ python3 file_mover.py</span>\n\n';
+  html += `<span class="info">Source folder: source_images/ (${files.length} files)\nDest folder:   moved_images/</span>\n\n`;
+  if (!jpgs.length) {
+    html += '<span class="warn">⚠ No .jpg files found to move.</span>';
+  } else {
+    jpgs.forEach(f => { html += `<span class="ok">✔ Moved: ${f} → moved_images/</span>\n`; });
+    if (others.length) {
+      others.forEach(f => { html += `<span class="info">  Skipped: ${f}</span>\n`; });
+    }
+    html += `\n<span class="ok">Done! ${jpgs.length} file(s) moved.</span>`;
+  }
+  out.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────
+// TASK 3B: EMAIL EXTRACTOR
+// ─────────────────────────────────────────────
+function runEmailExtractor() {
+  const text = document.getElementById('email-input').value;
+  const res = document.getElementById('email-results');
+  const emailRe = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+  const found = [...new Set(text.match(emailRe) || [])];
+  if (!found.length) {
+    res.innerHTML = '<div style="color:var(--red);font-family:var(--mono);font-size:13px;">⚠ No email addresses found.</div>';
+    return;
+  }
+  res.innerHTML = `<div style="margin-bottom:8px;font-family:var(--mono);font-size:12px;color:var(--muted);">Found ${found.length} unique email(s):</div>`
+    + found.map(e=>`<span class="email-chip">✉ ${e}</span>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// TASK 3C: TITLE SCRAPER (via allorigins proxy)
+// ─────────────────────────────────────────────
+async function runTitleScraper() {
+  let url = document.getElementById('url-input').value.trim();
+  const out = document.getElementById('scraper-output');
+  if (!url) { out.innerHTML = '<span class="warn">⚠ Enter a URL first.</span>'; return; }
+  if (!url.startsWith('http')) url = 'https://' + url;
+
+  out.innerHTML = `<span class="info">Fetching: ${url}\nPlease wait…</span>`;
+
+  try {
+    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const resp = await fetch(proxy);
+    const data = await resp.json();
+    const html = data.contents || '';
+    const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].replace(/\s+/g,' ').trim() : 'No <title> tag found';
+    out.innerHTML = `<span class="sys">$ python3 scraper.py</span>\n\n`
+      + `<span class="info">URL   : ${url}</span>\n`
+      + `<span class="ok">Title : ${title}</span>\n\n`
+      + `<span class="info">Saved to page_title.txt ✔</span>`;
+  } catch(e) {
+    out.innerHTML = `<span class="sys">$ python3 scraper.py</span>\n\n`
+      + `<span class="err">Error: Could not fetch page.\n${e.message}</span>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// TASK 4: CHATBOT
+// ─────────────────────────────────────────────
+const RULES = [
+  [/\b(hello|hi|hey|howdy|hiya)\b/i, ["Hey there! 👋 How can I help you today?", "Hi! Great to see you. What's up?"]],
+  [/good (morning|afternoon|evening)/i, (m) => `Good ${m[1]}! Hope you're having a great day 😊`],
+  [/how are you/i, ["I'm doing great, thanks for asking! What about you?", "All good over here! 😄"]],
+  [/i('m| am) (good|fine|great|okay)/i, ["Glad to hear that! 😄 Anything I can help with?"]],
+  [/i('m| am) (bad|sad|not good|terrible)/i, ["I'm sorry to hear that 😔 Want to talk about it?"]],
+  [/what('s| is) your name/i, ["I'm CodeBot 🤖 — your Python-powered assistant!"]],
+  [/my name is (\w+)/i, (m) => `Nice to meet you, ${m[1]}! 😊`],
+  [/i('m| am) (\w+)/i, (m) => `Hi ${m[2]}! 👋`],
+  [/how old are you/i, ["I was just created! So basically 0 years old 😄"]],
+  [/what can you do/i, ["I can chat, answer questions, tell jokes, and keep you company! 🗣️"]],
+  [/are you (a )?(bot|robot|ai|chatbot)/i, ["Yes! I'm a rule-based chatbot written in Python 🐍"]],
+  [/are you human/i, ["Nope! 100% code. But I try my best 😄"]],
+  [/tell me a joke/i, ["Why do programmers prefer dark mode? Because light attracts bugs! 🐛😄",
+                        "Why was the JavaScript developer sad? Because they didn't know how to 'null' their feelings! 😂"]],
+  [/another joke/i, ["Why was the computer cold? It left its Windows open! 💻😄"]],
+  [/what('s| is) python/i, ["Python is a powerful, beginner-friendly programming language. You're coding it right now! 🐍"]],
+  [/do you (know|code|program)/i, ["Yes! I'm written in Python. Coding is my whole existence 🐍"]],
+  [/\b(thanks|thank you|thx|ty)\b/i, ["You're welcome! 😊", "Happy to help! 🙌"]],
+  [/\b(bye|goodbye|see you|cya)\b/i, ["Goodbye! It was great chatting 👋", "See you next time! Take care 😊"]],
+  [/what is (machine learning|ml|ai)/i, ["Machine Learning is a subset of AI where systems learn from data to make predictions! Sounds like your future 😄"]],
+  [/what is (dsa|data structure)/i, ["Data Structures & Algorithms are the backbone of coding interviews and efficient software. Keep grinding! 💪"]],
+];
+
+const FALLBACKS = [
+  "Hmm, I'm not sure about that 🤔 Try asking something else!",
+  "Interesting! I'm still learning. Ask me something simpler.",
+  "That's beyond my rulebook for now. Try: 'tell me a joke' or 'what is python'",
+];
+
+function chatbotReply(input) {
+  for (const [pattern, reply] of RULES) {
+    const m = input.match(pattern);
+    if (m) {
+      if (typeof reply === 'function') return reply(m);
+      return Array.isArray(reply) ? reply[Math.floor(Math.random()*reply.length)] : reply;
+    }
+  }
+  return FALLBACKS[Math.floor(Math.random()*FALLBACKS.length)];
+}
+
+function addChatMsg(text, isUser) {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + (isUser ? 'user' : 'bot');
+  div.innerHTML = `<div class="msg-avatar">${isUser ? '🧑' : '🤖'}</div>
+    <div class="msg-bubble">${text}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  addChatMsg(text, true);
+  setTimeout(() => addChatMsg(chatbotReply(text), false), 300);
+}
+
+function quickMsg(text) {
+  document.getElementById('chat-input').value = text;
+  sendChat();
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+hangmanNewGame();
+renderPortfolio();
+addChatMsg("Hey! I'm CodeBot 🤖 Ask me anything — try 'hello' or 'tell me a joke'!", false);
+</script>
+</body>
+</html>
